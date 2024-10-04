@@ -4,6 +4,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User } from './schemas/user.schema';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -25,7 +26,22 @@ export class UsersService {
     }
   }
 
-  async findByEmail(email: string): Promise<User | null> {
-    return this.userModel.findOne({ email }).exec(); // Returns the user if found or null
+  async findByGoogleId(googleId: string): Promise<User | null> {
+    try {
+      return await this.userModel.findOne({ googleId }).exec(); // Returns the user if found or null
+    } catch (error) {
+      this.logger.error(`Error finding user by Google ID: ${googleId}`, error.stack);
+      throw error; // Rethrow the error after logging
+    }
+  }
+
+  async update(userId: string, userDto: UpdateUserDto): Promise<User> {
+    userDto.updatedAt = new Date(); 
+    try {
+      return await this.userModel.findByIdAndUpdate(userId, userDto, { new: true }).exec();
+    } catch (error) {
+      this.logger.error('Error updating user', error.stack);
+      throw error;
+    }
   }
 }
