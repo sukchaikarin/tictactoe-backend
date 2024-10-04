@@ -40,7 +40,7 @@ export class AuthController {
   
     // Define the redirect URL based on the environment
     const redirectUrl = isProduction
-      ? 'https://yourdomain.com/play' // Production URL
+      ? process.env.PLAYGAMES // Production URL
       : 'http://localhost:3000/play'; // Development URL
   
     console.log("🚀 ~ AuthController ~ googleLoginCallback ~ Redirecting to:", redirectUrl);
