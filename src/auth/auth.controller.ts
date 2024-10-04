@@ -18,30 +18,35 @@ export class AuthController {
   }
 
   @Get('google/callback')
-@UseGuards(AuthGuard('google'))
-googleLoginCallback(@Req() req: Request, @Res() res: Response) {
-  // Handle the callback from Google, where user info is available
-  // @ts-ignore
-  const user = req.user;
-
-  //console.log('User information from Google:', user);
-
-  const token = this.jwtAuthService.createToken(user._id.toString());
-  console.log("🚀 ~ AuthController ~ googleLoginCallback ~ token:", token)
-
-  const isProduction = process.env.NODE_ENV === 'production';
-  const cookieMaxAge = parseInt(process.env.COOKIE_MAX_AGE, 10) || 7 * 24 * 60 * 60 * 1000;
+  @UseGuards(AuthGuard('google'))
+  googleLoginCallback(@Req() req: Request, @Res() res: Response) {
+    // @ts-ignore
+    const user = req.user;
+    console.log("🚀 ~ AuthController ~ googleLoginCallback ~ user:", user);
   
- const thisIsCookie =  res.cookie('jwt', token, {
-    httpOnly: true,
-    secure: true, // ใช้การตรวจสอบ NODE_ENV ที่กำหนด
-    maxAge: cookieMaxAge,
-    sameSite: "none",
-  });
- console.log("🚀 ~ AuthController ~ googleLoginCallback ~ thisIsCookie:", thisIsCookie)
-
- return res.redirect('your-frontend-url'); 
-}
+    const token = this.jwtAuthService.createToken(user._id.toString());
+    console.log("🚀 ~ AuthController ~ googleLoginCallback ~ token:", token);
+  
+    const isProduction = process.env.NODE_ENV === 'production';
+    const cookieMaxAge = parseInt(process.env.COOKIE_MAX_AGE, 10) || 7 * 24 * 60 * 60 * 1000;
+  
+    // Set JWT in cookies
+    res.cookie('jwt', token, {
+      httpOnly: true,
+      secure: isProduction, // Secure only in production
+      maxAge: cookieMaxAge,
+      sameSite: isProduction ? "none" : "lax", // Adjust for production environment
+    });
+  
+    // Define the redirect URL based on the environment
+    const redirectUrl = isProduction
+      ? 'https://yourdomain.com/play' // Production URL
+      : 'http://localhost:3000/play'; // Development URL
+  
+    console.log("🚀 ~ AuthController ~ googleLoginCallback ~ Redirecting to:", redirectUrl);
+  
+    return res.redirect(redirectUrl); // Redirect to the frontend
+  }
 
 
 }

@@ -10,9 +10,13 @@ async function bootstrap() {
   app.setGlobalPrefix('v1'); // Optional: all routes will start with /api
 
   // You can enable CORS if needed
-  app.enableCors();
+  app.enableCors({
+    origin: true,
+    credentials: true,
+  });
+  const PORT = process.env.PORT || 3001; 
 
-  await app.listen(3000, '0.0.0.0'); // This would make it accessible on all network interfaces
+  await app.listen(PORT, '0.0.0.0'); // This would make it accessible on all network interfaces
  // Start the application on port 3000
   console.log(`Application is running on: ${await app.getUrl()}`); // Log the URL
 }
