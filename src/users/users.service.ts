@@ -8,22 +8,24 @@ import { CreateUserDto } from './dto/create-user.dto';
 @Injectable()
 export class UsersService {
   private readonly logger = new Logger(UsersService.name);
+  
   constructor(@InjectModel(User.name) private userModel: Model<User>) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
-    this.logger.log('Creating a new user...'); // บันทึกข้อความ
+    this.logger.log('Creating a new user...');
     const createdUser = new this.userModel(createUserDto);
   
     try {
       const savedUser = await createdUser.save();
-      this.logger.log(`User created: ${savedUser.id}`); // บันทึก ID ของผู้ใช้ที่ถูกสร้าง
+      this.logger.log(`User created: ${savedUser.id}`);
       return savedUser;
     } catch (error) {
-      this.logger.error('Error creating user', error.stack); // บันทึกข้อผิดพลาด
-      throw error; // ส่งข้อผิดพลาดต่อไป
+      this.logger.error('Error creating user', error.stack);
+      throw error;
     }
   }
-  
 
-  // สามารถเพิ่มฟังก์ชันอื่น ๆ ที่เกี่ยวข้องกับผู้ใช้ได้ที่นี่
+  async findByEmail(email: string): Promise<User | null> {
+    return this.userModel.findOne({ email }).exec(); // Returns the user if found or null
+  }
 }
