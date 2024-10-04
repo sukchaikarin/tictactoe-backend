@@ -35,7 +35,7 @@ export class AuthController {
       httpOnly: true,
       secure: isProduction, // Secure only in production
       maxAge: cookieMaxAge,
-      sameSite: isProduction ? "none" : "lax", // Adjust for production environment
+      sameSite: 'none', // Adjust for production environment
     });
   
     // Define the redirect URL based on the environment
