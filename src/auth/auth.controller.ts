@@ -41,7 +41,7 @@ export class AuthController {
     // Define the redirect URL based on the environment
     const redirectUrl = isProduction
       ? process.env.PLAYGAMES // Production URL
-      : 'http://localhost:3000/play'; // Development URL
+      : 'http://localhost:3000'; // Development URL
   
     console.log("🚀 ~ AuthController ~ googleLoginCallback ~ Redirecting to:", redirectUrl);
   
@@ -50,7 +50,8 @@ export class AuthController {
     console.log("🚀 ~ AuthController ~ googleLoginCallback ~ Redirecting to:", redirectWithParams);
 
     // ส่งผู้ใช้งานไปที่หน้าใหม่พร้อมแนบ query string
-    return res.redirect(redirectWithParams);
+    //return res.json({ token, redirectUrl });
+     return res.redirect(redirectWithParams);
   }
 
 
