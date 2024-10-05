@@ -31,11 +31,11 @@ export class AuthController {
     const cookieMaxAge = parseInt(process.env.COOKIE_MAX_AGE, 10) || 7 * 24 * 60 * 60 * 1000;
   
     // Set JWT in cookies
-    res.cookie('jwt', token, {
+    res.cookie('token', token, {
       httpOnly: true,
-      secure: isProduction, // Secure only in production
+      secure: isProduction ? true:false, // Secure only in production
       maxAge: cookieMaxAge,
-      sameSite: 'none', // Adjust for production environment
+      sameSite: isProduction ? 'none' : 'lax', // Adjust for production environment
     });
   
     // Define the redirect URL based on the environment
@@ -45,7 +45,12 @@ export class AuthController {
   
     console.log("🚀 ~ AuthController ~ googleLoginCallback ~ Redirecting to:", redirectUrl);
   
-    return res.redirect(redirectUrl); // Redirect to the frontend
+    const redirectWithParams = `${redirectUrl}?token=${encodeURIComponent(token)}`;
+
+    console.log("🚀 ~ AuthController ~ googleLoginCallback ~ Redirecting to:", redirectWithParams);
+
+    // ส่งผู้ใช้งานไปที่หน้าใหม่พร้อมแนบ query string
+    return res.redirect(redirectWithParams);
   }
 
 

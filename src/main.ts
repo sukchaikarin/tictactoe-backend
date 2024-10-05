@@ -1,17 +1,34 @@
 // src/main.ts
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-
+import * as cookieParser from 'cookie-parser';
+import * as helmet from 'helmet';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // Global settings can be applied here
   // For example, you can set up a global prefix for your routes
   app.setGlobalPrefix('v1'); // Optional: all routes will start with /api
+  app.use(cookieParser());
+ // เปิดใช้ Helmet สำหรับการตั้งค่า CSP
+ app.use(
+  helmet.contentSecurityPolicy({
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'"],
+      objectSrc: ["'none'"],
+      upgradeInsecureRequests: [],
+    },
+  }),
+);
+  const isProduction = process.env.NODE_ENV === 'production';
+  const origin = isProduction
+    ? 'https://tictactoe-frontend-smoky.vercel.app' // URL ของโปรดักชัน
+    : 'http://localhost:3000'; // URL ของการทดสอบใน localhost
 
-  // You can enable CORS if needed
+  // ตั้งค่า CORS
   app.enableCors({
-    origin: 'https://tictactoe-frontend-smoky.vercel.app', // URL ของแอป Vercel
+    origin: origin,
     credentials: true, // อนุญาตให้ส่ง cookies
   });
   const PORT = process.env.PORT || 3001; 
