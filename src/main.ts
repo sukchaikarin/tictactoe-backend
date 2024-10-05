@@ -28,7 +28,7 @@ async function bootstrap() {
 
   // ตั้งค่า CORS
   app.enableCors({
-    origin: origin,
+    origin: "https://tictactoe-frontend-smoky.vercel.app",
     credentials: true, // อนุญาตให้ส่ง cookies
   });
   const PORT = process.env.PORT || 3001; 
