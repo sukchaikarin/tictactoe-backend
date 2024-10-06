@@ -1,5 +1,5 @@
 // src/users/users.service.ts
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User } from './schemas/user.schema';
@@ -121,6 +121,90 @@ export class UsersService {
         this.logger.error('Error fetching user max wins streak', error.stack);
         throw error; // Rethrow the error after logging
     }
+}
+
+
+async incrementScore(id: string, points: number = 1, currentScore?: number): Promise<{ user: User; maxWinsStreakUpdated: boolean }> {
+  // ตรวจสอบว่า currentScore เป็น undefined หรือไม่
+  if (currentScore === undefined) {
+    this.logger.error(`Current score is undefined for user ID: ${id}`);
+    throw new BadRequestException('Current score must be provided');
+  }
+ const newScore = currentScore + points;
+  const session = await this.userModel.startSession();
+  session.startTransaction();
+
+  try {
+    const user = await this.userModel.findByIdAndUpdate(
+      id,
+      {
+        $inc: { scores: points },
+        $set: { updatedAt: new Date() },
+      },
+      { new: true, session }
+    ).exec();
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    // เช็กว่าคะแนนปัจจุบันมากกว่าคะแนนสูงสุดหรือไม่
+    let maxWinsStreakUpdated = false; // ตัวแปรสำหรับตรวจสอบว่ามีการอัปเดต maxWinsStreak หรือไม่
+    if (newScore > user.maxWinsStreak) {
+      user.maxWinsStreak = newScore; // อัปเดต maxWinsStreak
+      await user.save({ session }); // บันทึกการเปลี่ยนแปลง
+      this.logger.log(`Max wins streak updated for user ID: ${id} to new value: ${currentScore}`);
+      maxWinsStreakUpdated = true; // เปลี่ยนค่าเป็น true เมื่อต้องอัปเดต
+    } else {
+      this.logger.log(`No update needed for user ID: ${id}. Current score is not greater than maxWinsStreak.`);
+    }
+
+    // Commit the transaction only once
+    await session.commitTransaction();
+    return { user, maxWinsStreakUpdated }; // ส่งกลับผลลัพธ์
+  } catch (error) {
+    await session.abortTransaction();
+    this.logger.error(`Error incrementing score for user ID ${id}: ${error.message}`);
+    throw new NotFoundException(`Error updating score: ${error.message}`);
+  } finally {
+    session.endSession();
+  }
+}
+
+
+
+async decrementScore(id: string, points: number): Promise<User> {
+  const user = await this.userModel.findByIdAndUpdate(
+    id,
+    {
+      $inc: { scores: -points }, // ลดคะแนน
+      $set: { updatedAt: new Date() }, // ตั้งเวลาอัปเดต
+    },
+    { new: true } // คืนค่าผู้ใช้ที่ถูกอัปเดต
+  ).exec();
+
+  if (!user) {
+    throw new NotFoundException('User not found');
+  }
+
+  return user; // คืนค่าผู้ใช้ที่ถูกอัปเดต
+}
+
+async resetScore(id: string): Promise<User> {
+  const user = await this.userModel.findByIdAndUpdate(
+    id,
+    {
+      scores: 0, // ลบคะแนนทั้งหมด
+      $set: { updatedAt: new Date() }, // ตั้งเวลาอัปเดต
+    },
+    { new: true } // คืนค่าผู้ใช้ที่ถูกอัปเดต
+  ).exec();
+
+  if (!user) {
+    throw new NotFoundException('User not found');
+  }
+
+  return user; // คืนค่าผู้ใช้ที่ถูกอัปเดต
 }
 
 
