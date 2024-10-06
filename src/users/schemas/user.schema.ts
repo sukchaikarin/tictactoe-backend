@@ -13,12 +13,17 @@ export class User extends Document {
   @Prop({ required: false })
   picture: string;
   
-
   @Prop({ required: true })
   googleId: string; // เพิ่ม googleId
 
   @Prop({ default: 0 }) // ตั้งค่าเริ่มต้นเป็น 0
   scores: number;
+
+  @Prop({ default: 0 }) // ฟิลด์คะแนนสูงสุดที่เคยได้
+  highestScore: number;
+
+  @Prop({ default: 0 }) // ฟิลด์ชนะติดต่อกันมากสุด
+  maxWinsStreak: number;
 
   @Prop({ type: Date, default: Date.now }) // ตั้งค่า createdAt
   createdAt: Date;
