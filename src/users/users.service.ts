@@ -5,7 +5,7 @@ import { Model } from 'mongoose';
 import { User } from './schemas/user.schema';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-
+import { UserScoresResponse, UserScore } from './interfaces/user-scores.interface'; 
 @Injectable()
 export class UsersService {
   private readonly logger = new Logger(UsersService.name);
@@ -71,4 +71,38 @@ export class UsersService {
       throw error; // Rethrow the error after logging
     }
   }
+
+  async getUserScores(page: number, limit: number): Promise<UserScoresResponse> {
+    this.logger.log(`Fetching user scores for page: ${page} with limit: ${limit}`);
+    
+    try {
+     
+      
+      const totalCount = await this.userModel.countDocuments().exec(); // Count total users
+      
+      const skipValue = (page - 1) * limit;
+      
+        const users: UserScore[] = await this.userModel
+            .find()
+            .sort({ scores: -1, name: 1 })
+            .skip(skipValue)
+            .limit(limit)
+            .select({ name: 1, scores: 1, _id: 0 })
+            .exec();
+        
+        console.log("🚀 ~ UsersService ~ getUserScores ~ users:", users)
+
+        const totalPages = Math.ceil(totalCount / limit); // Calculate total pages
+        
+        // Debugging logs
+        this.logger.log(`Total Count: ${totalCount}, Total Pages: ${totalPages}, Users Fetched: ${users.length}`);
+
+        return { users, totalPages }; // Return users and total count
+    } catch (error) {
+        this.logger.error('Error fetching user scores', error.stack);
+        throw error; // Rethrow the error after logging
+    }
+}
+
+
 }

@@ -1,7 +1,8 @@
-import { Controller, Get, Post, Body, Param, NotFoundException, Logger } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, NotFoundException, Logger, Query } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { User } from './schemas/user.schema';
+import { UserScoresResponse } from './interfaces/user-scores.interface';
 
 @Controller('users')
 export class UsersController {
@@ -22,6 +23,23 @@ export class UsersController {
     }
   }
 
+ 
+
+  @Get('scores') // New endpoint to get users' scores
+  async getUserScores(@Query('page') page: number = 1): Promise<UserScoresResponse> {
+    this.logger.log(`Fetching scores for page: ${page}`);
+    try {
+      const limit = 2; // Limit to 2 users per page
+      const { users, totalPages } = await this.usersService.getUserScores(page, limit);
+      this.logger.log(`Fetched scores successfully for page: ${page}`);
+      return { users, totalPages }; // Return users and total pages
+    } catch (error) {
+      this.logger.error('Error fetching user scores', error.stack);
+      throw error; // Rethrow the error after logging
+    }
+  }
+
+
   @Get(':id') // Define the route to get a user by ID
   async findById(@Param('id') id: string): Promise<User> {
     this.logger.log(`Finding user by ID: ${id}`);
@@ -34,7 +52,6 @@ export class UsersController {
       throw new NotFoundException(`Error fetching user: ${error.message}`);
     }
   }
-
   // Uncomment if you want to implement findAll method
   // @Get()
   // async findAll() {
