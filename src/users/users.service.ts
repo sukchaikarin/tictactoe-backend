@@ -124,7 +124,7 @@ export class UsersService {
 }
 
 
-async incrementScore(id: string, points: number = 1, currentScore?: number): Promise<{ user: User; maxWinsStreakUpdated: boolean }> {
+async incrementScore(id: string, points: number = 1, currentScore?: number,newHighStreak?:number): Promise<{ user: User; maxWinsStreakUpdated: boolean;newHighScores:boolean }> {
   // ตรวจสอบว่า currentScore เป็น undefined หรือไม่
   if (currentScore === undefined) {
     this.logger.error(`Current score is undefined for user ID: ${id}`);
@@ -149,19 +149,32 @@ async incrementScore(id: string, points: number = 1, currentScore?: number): Pro
     }
 
     // เช็กว่าคะแนนปัจจุบันมากกว่าคะแนนสูงสุดหรือไม่
-    let maxWinsStreakUpdated = false; // ตัวแปรสำหรับตรวจสอบว่ามีการอัปเดต maxWinsStreak หรือไม่
-    if (newScore > user.maxWinsStreak) {
-      user.maxWinsStreak = newScore; // อัปเดต maxWinsStreak
+    let newHighScores = false; // ตัวแปรสำหรับตรวจสอบว่ามีการอัปเดต highestScore หรือไม่
+    if (newScore > user.highestScore) {
+      user.scores = newScore;
+      user.highestScore = newScore; // อัปเดต highestScore
       await user.save({ session }); // บันทึกการเปลี่ยนแปลง
       this.logger.log(`Max wins streak updated for user ID: ${id} to new value: ${currentScore}`);
-      maxWinsStreakUpdated = true; // เปลี่ยนค่าเป็น true เมื่อต้องอัปเดต
+      newHighScores = true; // เปลี่ยนค่าเป็น true เมื่อต้องอัปเดต
     } else {
       this.logger.log(`No update needed for user ID: ${id}. Current score is not greater than maxWinsStreak.`);
     }
 
+// เช็กว่าคะแนนปัจจุบันมากกว่าmaxWinsStreakหรือไม่
+let maxWinsStreakUpdated = false; // ตัวแปรสำหรับตรวจสอบว่ามีการอัปเดต maxWinsStreak หรือไม่
+if (newHighStreak > user.maxWinsStreak) {
+  user.maxWinsStreak = newHighStreak; // อัปเดต maxWinsStreak
+  await user.save({ session }); // บันทึกการเปลี่ยนแปลง
+  this.logger.log(`Max wins streak updated for user ID: ${id} to new value: ${currentScore}`);
+  maxWinsStreakUpdated = true; // เปลี่ยนค่าเป็น true เมื่อต้องอัปเดต
+} else {
+  this.logger.log(`No update needed for user ID: ${id}. Current score is not greater than maxWinsStreak.`);
+}
+
+
     // Commit the transaction only once
     await session.commitTransaction();
-    return { user, maxWinsStreakUpdated }; // ส่งกลับผลลัพธ์
+    return { user, maxWinsStreakUpdated,newHighScores }; // ส่งกลับผลลัพธ์
   } catch (error) {
     await session.abortTransaction();
     this.logger.error(`Error incrementing score for user ID ${id}: ${error.message}`);
