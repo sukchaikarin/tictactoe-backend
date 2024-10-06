@@ -3,6 +3,7 @@ import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { User } from './schemas/user.schema';
 import { UserScoresResponse } from './interfaces/user-scores.interface';
+import { UserMaxWinsStreakResponse } from './interfaces/user-max-wins-streak.interface';
 
 @Controller('users')
 export class UsersController {
@@ -39,6 +40,19 @@ export class UsersController {
     }
   }
 
+  @Get('max-wins-streak') // New endpoint to get users' max wins streak
+async getUserMaxWinsStreak(@Query('page') page: number = 1): Promise<UserMaxWinsStreakResponse> {
+    this.logger.log(`Fetching max wins streak for page: ${page}`);
+    try {
+        const limit = 2; // Limit to 2 users per page
+        const { users, totalPages } = await this.usersService.getUserMaxWinsStreak(page, limit);
+        this.logger.log(`Fetched max wins streak successfully for page: ${page}`);
+        return { users, totalPages }; // Return users and total pages
+    } catch (error) {
+        this.logger.error('Error fetching user max wins streak', error.stack);
+        throw error; // Rethrow the error after logging
+    }
+}
 
   @Get(':id') // Define the route to get a user by ID
   async findById(@Param('id') id: string): Promise<User> {
