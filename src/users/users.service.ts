@@ -162,7 +162,7 @@ async incrementScore(id: string, points: number = 1, currentScore?: number,newHi
 
 // เช็กว่าคะแนนปัจจุบันมากกว่าmaxWinsStreakหรือไม่
 let maxWinsStreakUpdated = false; // ตัวแปรสำหรับตรวจสอบว่ามีการอัปเดต maxWinsStreak หรือไม่
-if (newHighStreak > user.maxWinsStreak) {
+if (user.maxWinsStreak < newHighStreak) {
   user.maxWinsStreak = newHighStreak; // อัปเดต maxWinsStreak
   await user.save({ session }); // บันทึกการเปลี่ยนแปลง
   this.logger.log(`Max wins streak updated for user ID: ${id} to new value: ${currentScore}`);
