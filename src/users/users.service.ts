@@ -84,7 +84,7 @@ export class UsersService {
         .sort({ scores: -1, name: 1 })
         .skip(skipValue)
         .limit(limit)
-        .select({ name: 1, scores: 1, _id: 0 })
+        .select({ name: 1, scores: 1 })
         .exec();
       const totalPages = Math.ceil(totalCount / limit); // Calculate total pages
       // Debugging logs
@@ -108,7 +108,7 @@ export class UsersService {
             .sort({ maxWinsStreak: -1, name: 1 })
             .skip(skipValue)
             .limit(limit)
-            .select({ name: 1, maxWinsStreak: 1, _id: 0 }) // เลือกเฉพาะฟิลด์ที่ต้องการ
+            .select({ name: 1, maxWinsStreak: 1,  }) // เลือกเฉพาะฟิลด์ที่ต้องการ
             .exec();
 
         const totalPages = Math.ceil(totalCount / limit); // Calculate total pages
